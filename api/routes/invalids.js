@@ -10,13 +10,13 @@ const rateLimiter = getRateLimiter(60 * 1000, 10);
 // GET /invalids
 // eslint-disable-next-line
 router.get('/', rateLimiter, async (req, res, next) => {
-    res.json(await checkSheet('./input2.xls'));
+    res.json(await checkSheet('./input3.xls'));
 
     res.status(200).end();
 });
 
-router.post('/reset', rateLimiter, async (req, res, next) => {
+// router.post('/reset', rateLimiter, async (req, res, next) => {
 
-});
+// });
 
 module.exports = router;

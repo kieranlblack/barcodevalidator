@@ -23,9 +23,9 @@ const mailListener = new MailListener({
 
 mailListener.start();
 
-mailListener.on('error', err => console.log(err));
-
 mailListener.on('attachment', (attachment) => {
     console.log(attachment.path);
     checkSheet(attachment);
 });
+
+mailListener.on('error', err => console.log(new Error(err)));

@@ -1,3 +1,4 @@
+const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
@@ -11,6 +12,7 @@ const createError = require('http-errors');
 
 app.use(helmet());
 app.use(morgan('common'));
+app.use(cors());
 app.use(express.json());
 
 // #endregion third-party middleware
