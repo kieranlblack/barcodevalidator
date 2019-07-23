@@ -28,7 +28,10 @@ router.get('/', rateLimiter, async (req, res) => {
             console.log(new Error(err));
             res.status(400).end();
         } else {
-            res.json(items.map(item => item.split('.')[0]));
+            res.json(items.map(item => ({
+                    name: item.split('.')[0],
+                })));
+
             res.status(200);
         }
     });
@@ -36,7 +39,7 @@ router.get('/', rateLimiter, async (req, res) => {
 
 // DELETE /api/sheets/:name
 router.delete('/:name', rateLimiter, async (req, res) => {
-    fs.unlink(`./attachments/${req.params.name}`, (err) => {
+    fs.unlink(`./attachments/${req.params.name}.xls`, (err) => {
         if (err) {
             console.log(new Error(err));
             res.status(400).end();

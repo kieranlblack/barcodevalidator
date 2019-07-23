@@ -10,8 +10,10 @@ const sqlConfig = {
 
 module.exports.checkSheet = async function (sheetPath) {
     const workingSheet = xlsx.parse(sheetPath);
+    if (!workingSheet) return;
+
     const invalidRows = [];
-    const titles = workingSheet[0].data[0].filter(i => i !== '');
+    const titles = [...workingSheet[0].data[0].filter(i => i !== ''), 'rowNum'];
     const barcodeIndex = titles.indexOf('Barcode');
 
     sql.close();
@@ -19,7 +21,7 @@ module.exports.checkSheet = async function (sheetPath) {
     try {
         const pool = await sql.connect(sqlConfig);
 
-        await Promise.all(workingSheet[0].data.slice(1).map(async (row) => {
+        await Promise.all(workingSheet[0].data.slice(1).map(async (row, index) => {
             let result = null;
 
             if (/^[0-9]+$/.test(row[barcodeIndex])) { // if the id number is just a number of any length
@@ -34,6 +36,7 @@ module.exports.checkSheet = async function (sheetPath) {
             }
 
             if (!result || Object.values(result.recordset[0])[0] === 0) {
+                row.push(index + 2);
                 invalidRows.push(row);
             }
         }));
@@ -45,7 +48,7 @@ module.exports.checkSheet = async function (sheetPath) {
     sql.close();
 
     return invalidRows.map(row => row.reduce((acc, current, index) => {
-                                        acc[titles[index]] = current;
+                                        acc[titles[index].toLowerCase()] = current;
                                         return acc;
                                     }, {}));
 };
