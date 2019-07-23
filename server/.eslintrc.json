@@ -22,7 +22,7 @@
     "rules": {
         "consistent-return": "off",
         "func-names": "off",
-        "indent": ["error", 4],
+        "indent": "off",
         "linebreak-style": 0,
         "no-console": "off"
     }

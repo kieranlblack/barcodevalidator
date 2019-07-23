@@ -4,9 +4,11 @@ const morgan = require('morgan');
 
 const express = require('express');
 
-const app = express();
-
 const createError = require('http-errors');
+
+const mailListener = require('./util/mailer');
+
+const app = express();
 
 // #region third-party middleware
 
@@ -19,7 +21,7 @@ app.use(express.json());
 
 // #region routes
 
-app.use('/invalids', require('./routes/invalids'));
+app.use('/api/sheets', require('./routes/api/sheets'));
 
 // #endregion routes
 
@@ -36,4 +38,12 @@ app.use((err, req, res, next) => {
 
 // #endregion error-handling middleware
 
-app.listen(3000);
+app.listen(3000, () => {
+    mailListener.start();
+
+    mailListener.on('attachment', (attachment) => {
+        console.log(attachment.path);
+    });
+
+    mailListener.on('error', err => console.log(new Error(err)));
+});

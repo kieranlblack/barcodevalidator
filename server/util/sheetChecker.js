@@ -8,10 +8,13 @@ const sqlConfig = {
     connectionString: `Driver={SQL Server Native Client 11.0};Server={${process.env.SQL_SERVER}};Database={${process.env.SQL_DB}};Trusted_Connection={yes};`,
 };
 
-module.exports.checkSheet = async function (sheetName) {
-    const workingSheet = xlsx.parse(sheetName);
-
+module.exports.checkSheet = async function (sheetPath) {
+    const workingSheet = xlsx.parse(sheetPath);
     const invalidRows = [];
+    const titles = workingSheet[0].data[0].filter(i => i !== '');
+    const barcodeIndex = titles.indexOf('Barcode');
+
+    sql.close();
 
     try {
         const pool = await sql.connect(sqlConfig);
@@ -19,14 +22,14 @@ module.exports.checkSheet = async function (sheetName) {
         await Promise.all(workingSheet[0].data.slice(1).map(async (row) => {
             let result = null;
 
-            if (/^[0-9]+$/.test(row[1])) { // if the id number is just a number of any length
+            if (/^[0-9]+$/.test(row[barcodeIndex])) { // if the id number is just a number of any length
                 result = await pool.request()
-                    .input('serialNumber', sql.Int, row[1])
+                    .input('serialNumber', sql.Int, row[barcodeIndex])
                     .query('SELECT COUNT(1) FROM LotBox WHERE SerialNo = @serialNumber');
-            } else if (/^[0-9]+-[0-9]+$/.test(row[1])) { // if the id number is two numbers of any length seprerated by a hypen
+            } else if (/^[0-9]+-[0-9]+$/.test(row[barcodeIndex])) { // if the id number is two numbers of any length seprerated by a hypen
                 result = await pool.request()
-                    .input('soNumber', sql.NVarChar(6), row[1].split('-')[0])
-                    .input('woNumber', sql.Int, row[1].split('-')[1])
+                    .input('soNumber', sql.NVarChar(6), row[barcodeIndex].split('-')[0])
+                    .input('woNumber', sql.Int, row[barcodeIndex].split('-')[1])
                     .query('SELECT COUNT(1) FROM pressrec WHERE SO_NUM = @soNumber AND WO_NUM = @woNumber');
             }
 
@@ -41,7 +44,10 @@ module.exports.checkSheet = async function (sheetName) {
 
     sql.close();
 
-    return invalidRows;
+    return invalidRows.map(row => row.reduce((acc, current, index) => {
+                                        acc[titles[index]] = current;
+                                        return acc;
+                                    }, {}));
 };
 
 sql.on('error', err => console.log(new Error(err)));
