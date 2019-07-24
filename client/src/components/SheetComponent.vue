@@ -5,17 +5,23 @@
             <v-card flat class="mx-auto mt-0">
                 <v-card class="mx-auto mt-0">
                     <v-toolbar flat extended extension-height="4" color="white">
-                        <v-toolbar-title>Files</v-toolbar-title>
-                        <v-spacer></v-spacer>
-                        <v-text-field
-                            v-model="fileSearch"
-                            append-icon="search"
-                            label="Search"
-                            single-line
-                            hide-details
-                        ></v-text-field>
-                        <v-spacer></v-spacer>
-                        <v-btn color="blue" dark class="mb-2" @click="refreshSheets">Refresh</v-btn>
+                        <v-flex xs4>
+                            <v-toolbar-title>Files</v-toolbar-title>
+                        </v-flex>
+                        <v-flex xs4>
+                            <v-text-field
+                                v-model="fileSearch"
+                                append-icon="search"
+                                label="Search"
+                                single-line
+                                hide-details
+                            ></v-text-field>
+                        </v-flex>
+                        <v-flex xs4>
+                            <v-layout justify-end>
+                                <v-btn color="blue" dark class="mb-2" @click="refreshSheets">Refresh</v-btn>
+                            </v-layout>
+                        </v-flex>
                         <v-progress-linear
                             :active="isSheetsLoading"
                             :height="4"
@@ -34,10 +40,13 @@
                     <template v-slot:items="props">
                         <tr @click="getSheetData(props.item.name)">
                             <td class="text-xs-left">{{ props.item.name }}</td>
-                            <td class="text-xs-right">{{ props.item.dateModified }}</td>
-                            <td class="justify-center layout px-0">
-                                <v-layout justify-center>
-                                    <v-btn class="mx-0" icon @click.stop="confirmDelete = true;toDelete = props.item.name">
+                            <td class="justify-center layout px-4">
+                                <v-layout justify-end>
+                                    <v-btn
+                                        class="mx-0"
+                                        icon
+                                        @click.stop="confirmDelete = true; toDelete = props.item.name"
+                                    >
                                         <v-icon small>delete</v-icon>
                                     </v-btn>
                                 </v-layout>
@@ -63,17 +72,23 @@
             <v-card flat class="mx-auto mt-5" v-if="showData">
                 <v-card class="mx-auto mt-0">
                     <v-toolbar flat extended extension-height="4" color="white">
-                        <v-toolbar-title>{{ selectedSheet }}</v-toolbar-title>
-                        <v-spacer></v-spacer>
-                        <v-text-field
-                            v-model="dataSearch"
-                            append-icon="search"
-                            label="Search"
-                            single-line
-                            hide-details
-                        ></v-text-field>
-                        <v-spacer></v-spacer>
-                        <v-btn color="red" dark class="mb-2" @click="showData = false">Close</v-btn>
+                        <v-flex xs4>
+                            <v-toolbar-title>{{ selectedSheet }}</v-toolbar-title>
+                        </v-flex>
+                        <v-flex xs4>
+                            <v-text-field
+                                v-model="dataSearch"
+                                append-icon="search"
+                                label="Search"
+                                single-line
+                                hide-details
+                            ></v-text-field>
+                        </v-flex>
+                        <v-flex xs4>
+                            <v-layout justify-end>
+                                <v-btn color="red" dark class="mb-2" @click="showData = false">Close</v-btn>
+                            </v-layout>
+                        </v-flex>
                         <v-progress-linear
                             :active="isDataLoading"
                             :height="4"
@@ -87,6 +102,7 @@
                     :headers="dataHeaders"
                     :items="sheetData"
                     :search="dataSearch"
+                    :rows-per-page-items="[10, 15, 30, { text: '$vuetify.dataIterator.rowsPerPageAll', value: -1 }]"
                     class="elevation-1"
                 >
                     <template v-slot:items="props">
@@ -122,10 +138,10 @@ export default {
                     value: "name"
                 },
                 {
-                    text: "Last Modified",
+                    text: "Actions",
                     align: "right",
                     sortable: false,
-                    value: "lastModified"
+                    value: "action"
                 }
             ],
             dataHeaders: [
@@ -182,6 +198,13 @@ export default {
         async deleteSheet(name) {
             this.error = "";
             this.confirmDelete = false;
+
+            if (this.selectedSheet === name) {
+                this.selectedSheet = "";
+                this.showData = false;
+                this.sheetData = [];
+            }
+
             await SheetService.deleteSheet(name);
             this.sheets = await SheetService.getSheets();
             this.toDelete = "";

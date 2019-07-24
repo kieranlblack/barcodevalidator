@@ -38,12 +38,13 @@ app.use((err, req, res, next) => {
 
 // #endregion error-handling middleware
 
-app.listen(3000, () => {
-    mailListener.start();
+app.listen(3000);
 
-    mailListener.on('attachment', (attachment) => {
-        console.log(attachment.path);
-    });
+// the mail handler
+mailListener.start();
 
-    mailListener.on('error', err => console.log(new Error(err)));
+mailListener.on('attachment', (attachment) => {
+    console.log(attachment.path);
 });
+
+mailListener.on('error', err => console.log(new Error(err)));
