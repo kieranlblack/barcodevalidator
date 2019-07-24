@@ -30,6 +30,7 @@ router.get('/', rateLimiter, async (req, res) => {
         } else {
             res.json(items.map(item => ({
                     name: item.split('.')[0],
+                    dateModified: 'TODO',
                 })));
 
             res.status(200);

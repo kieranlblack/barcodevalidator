@@ -1,57 +1,106 @@
 <template>
-    <div class="container">
-        <v-card flat class="mx-auto mt-6">
-            <v-card class="mx-auto mt-6">
-                <v-toolbar flat extended extension-height="4" color="white">
-                    <v-toolbar-title>Files</v-toolbar-title>
-                    <v-spacer></v-spacer>
-                    <v-btn color="blue" dark class="mb-2" @click="refreshSheets">Refresh</v-btn>
-                    <v-progress-linear
-                        :active="isLoading"
-                        :height="4"
-                        :indeterminate="true"
-                        slot="extension"
-                        color="blue"
-                    ></v-progress-linear>
-                </v-toolbar>
+    <v-content>
+        <v-container fluid>
+            <v-alert color="error" class="text-xs-center" v-show="error">{{ error }}</v-alert>
+            <v-card flat class="mx-auto mt-0">
+                <v-card class="mx-auto mt-0">
+                    <v-toolbar flat extended extension-height="4" color="white">
+                        <v-toolbar-title>Files</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-text-field
+                            v-model="fileSearch"
+                            append-icon="search"
+                            label="Search"
+                            single-line
+                            hide-details
+                        ></v-text-field>
+                        <v-spacer></v-spacer>
+                        <v-btn color="blue" dark class="mb-2" @click="refreshSheets">Refresh</v-btn>
+                        <v-progress-linear
+                            :active="isSheetsLoading"
+                            :height="4"
+                            :indeterminate="true"
+                            slot="extension"
+                            color="blue"
+                        ></v-progress-linear>
+                    </v-toolbar>
+                </v-card>
+                <v-data-table
+                    :headers="sheetHeaders"
+                    :items="sheets"
+                    :search="fileSearch"
+                    class="elevation-1"
+                >
+                    <template v-slot:items="props">
+                        <tr @click="getSheetData(props.item.name)">
+                            <td class="text-xs-left">{{ props.item.name }}</td>
+                            <td class="text-xs-right">{{ props.item.dateModified }}</td>
+                            <td class="justify-center layout px-0">
+                                <v-layout justify-center>
+                                    <v-btn class="mx-0" icon @click.stop="confirmDelete = true;toDelete = props.item.name">
+                                        <v-icon small>delete</v-icon>
+                                    </v-btn>
+                                </v-layout>
+                            </td>
+                        </tr>
+                    </template>
+                </v-data-table>
+                <v-dialog v-model="confirmDelete" max-width="500">
+                    <v-card>
+                        <v-card-title class="headline grey" primary-title>
+                            <strong>Delete</strong>
+                            &nbsp;{{ toDelete }}?
+                        </v-card-title>
+                        <v-card-text>This file will no longer be accesible through the web app unless reuploaded.</v-card-text>
+                        <v-divider></v-divider>
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="error" text @click="deleteSheet(toDelete)">Delete</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
             </v-card>
-            <v-data-table :headers="sheetHeaders" :items="sheets" class="elevation-1">
-                <template v-slot:items="props">
-                    <tr @click="getSheetData(props.item.name)">
-                        <td class="text-xs-left">{{ props.item.name }}</td>
-                        <td class="text-xs-right">modified</td>
-                        <td class="justify-center layout px-0">
-                            <v-icon small @click="deleteSheet(props.item.name)">delete</v-icon>
-                        </td>
-                    </tr>
-                </template>
-            </v-data-table>
-        </v-card>
-        <br />
-        <v-card flat class="mx-auto mt-6" v-if="showData">
-            <v-card class="mx-auto mt-6">
-                <v-toolbar flat extended extension-height="4" color="white">
-                    <v-toolbar-title>{{ selectedSheet }}</v-toolbar-title>
-                </v-toolbar>
+            <v-card flat class="mx-auto mt-5" v-if="showData">
+                <v-card class="mx-auto mt-0">
+                    <v-toolbar flat extended extension-height="4" color="white">
+                        <v-toolbar-title>{{ selectedSheet }}</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-text-field
+                            v-model="dataSearch"
+                            append-icon="search"
+                            label="Search"
+                            single-line
+                            hide-details
+                        ></v-text-field>
+                        <v-spacer></v-spacer>
+                        <v-btn color="red" dark class="mb-2" @click="showData = false">Close</v-btn>
+                        <v-progress-linear
+                            :active="isDataLoading"
+                            :height="4"
+                            :indeterminate="true"
+                            slot="extension"
+                            color="blue"
+                        ></v-progress-linear>
+                    </v-toolbar>
+                </v-card>
+                <v-data-table
+                    :headers="dataHeaders"
+                    :items="sheetData"
+                    :search="dataSearch"
+                    class="elevation-1"
+                >
+                    <template v-slot:items="props">
+                        <td class="text-xs-left">{{ props.item["device name"] }}</td>
+                        <td class="text-xs-left">{{ props.item.barcode }}</td>
+                        <td class="text-xs-left">{{ props.item.quantity }}</td>
+                        <td class="text-xs-left">{{ props.item.location }}</td>
+                        <td class="text-xs-left">{{ props.item.time }} on {{ props.item.date }}</td>
+                        <td class="text-xs-left">{{ props.item.rownum }}</td>
+                    </template>
+                </v-data-table>
             </v-card>
-            <v-data-table
-                :headers="dataHeaders"
-                :items="sheetData"
-                class="elevation-1"
-            >
-                <template v-slot:items="props">
-                    <td class="text-xs-left">{{ props.item["device name"] }}</td>
-                    <td class="text-xs-left">{{ props.item.barcode }}</td>
-                    <td class="text-xs-left">{{ props.item.quantity }}</td>
-                    <td class="text-xs-left">{{ props.item.location }}</td>
-                    <td class="text-xs-left">{{ props.item.time }} on {{ props.item.date }}</td>
-                    <td class="text-xs-left">{{ props.item.rownum }}</td>
-                </template>
-            </v-data-table>
-        </v-card>
-        <br />
-        <p class="error text-xs-center" v-if="error">{{ error }}</p>
-    </div>
+        </v-container>
+    </v-content>
 </template>
 
 <script>
@@ -61,6 +110,10 @@ export default {
     name: "SheetComponent",
     data() {
         return {
+            confirmDelete: false,
+            toDelete: "",
+            fileSearch: "",
+            dataSearch: "",
             sheetHeaders: [
                 {
                     text: "Name",
@@ -118,7 +171,8 @@ export default {
             sheetData: [],
             showData: false,
             selectedSheet: "",
-            isLoading: true
+            isSheetsLoading: true,
+            isDataLoading: true
         };
     },
     async created() {
@@ -126,24 +180,29 @@ export default {
     },
     methods: {
         async deleteSheet(name) {
+            this.error = "";
+            this.confirmDelete = false;
             await SheetService.deleteSheet(name);
             this.sheets = await SheetService.getSheets();
+            this.toDelete = "";
         },
         async getSheetData(name) {
-            this.isLoading = true;
+            this.isDataLoading = true;
+            this.error = "";
             this.selectedSheet = name;
-            this.sheetData = await SheetService.getSheetData(name);
             this.showData = true;
-            this.isLoading = false;
+            this.sheetData = [];
+            this.sheetData = await SheetService.getSheetData(name);
+            this.isDataLoading = false;
         },
         async refreshSheets() {
-            this.isLoading = true;
+            this.isSheetsLoading = true;
             this.error = "";
             this.sheets = [];
 
             try {
                 this.sheets = await SheetService.getSheets();
-                this.isLoading = false;
+                this.isSheetsLoading = false;
             } catch (err) {
                 this.error = err.message;
             }

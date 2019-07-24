@@ -10,7 +10,7 @@ const sqlConfig = {
 
 module.exports.checkSheet = async function (sheetPath) {
     const workingSheet = xlsx.parse(sheetPath);
-    if (!workingSheet) return;
+    if (workingSheet[0].data.length === 0) return;
 
     const invalidRows = [];
     const titles = [...workingSheet[0].data[0].filter(i => i !== ''), 'rowNum'];
@@ -48,9 +48,9 @@ module.exports.checkSheet = async function (sheetPath) {
     sql.close();
 
     return invalidRows.map(row => row.reduce((acc, current, index) => {
-                                        acc[titles[index].toLowerCase()] = current;
-                                        return acc;
-                                    }, {}));
+        acc[titles[index].toLowerCase()] = current;
+        return acc;
+    }, {}));
 };
 
 sql.on('error', err => console.log(new Error(err)));
