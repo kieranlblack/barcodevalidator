@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const url = 'http://10.2.2.237:3000/api/sheets/';
+const url = 'http://127.0.0.1:3000/api/sheets/';
 
 class SheetService {
     // GET a list of all sheets
@@ -20,7 +20,7 @@ class SheetService {
     static getSheetData(name) {
         return new Promise(async (resolve, reject) => {
             try {
-                const res = await axios.get(`${url}${name}`, { timeout: 20000 });
+                const res = await axios.get(`${url}${name}/data`, { timeout: 30000 });
 
                 resolve(res.data);
             } catch (err) {

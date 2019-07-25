@@ -38,14 +38,14 @@
                     class="elevation-1"
                 >
                     <template v-slot:items="props">
-                        <tr @click="getSheetData(props.item.name)">
+                        <tr @click="getSheetData(props.item.fullName)">
                             <td class="text-xs-left">{{ props.item.name }}</td>
                             <td class="justify-center layout px-4">
                                 <v-layout justify-end>
                                     <v-btn
                                         class="mx-0"
                                         icon
-                                        @click.stop="confirmDelete = true; toDelete = props.item.name"
+                                        @click.stop="confirmDelete = true; toDelete = props.item.fullName"
                                     >
                                         <v-icon small>delete</v-icon>
                                     </v-btn>
@@ -65,6 +65,7 @@
                         <v-card-actions>
                             <v-spacer></v-spacer>
                             <v-btn color="error" text @click="deleteSheet(toDelete)">Delete</v-btn>
+                            <v-btn color="grey" text @click="confirmDelete = false">Cancel</v-btn>
                         </v-card-actions>
                     </v-card>
                 </v-dialog>
