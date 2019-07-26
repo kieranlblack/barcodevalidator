@@ -1,10 +1,10 @@
 <template>
     <v-content>
         <v-container fluid>
-            <v-alert color="error" class="text-xs-center" v-show="error">{{ error }}</v-alert>
+            <v-alert color="error" class="text-xs-center mt-0 mb-3" v-show="error">{{ error }}</v-alert>
             <v-card flat class="mx-auto mt-0">
                 <v-card class="mx-auto mt-0">
-                    <v-toolbar flat extended extension-height="4" color="white">
+                    <v-toolbar flat color="white">
                         <v-flex xs4>
                             <v-toolbar-title>Files</v-toolbar-title>
                         </v-flex>
@@ -19,22 +19,22 @@
                         </v-flex>
                         <v-flex xs4>
                             <v-layout justify-end>
-                                <v-btn color="blue" dark class="mb-2" @click="refreshSheets">Refresh</v-btn>
+                                <v-btn
+                                    color="blue"
+                                    dark
+                                    class="mb-2"
+                                    @click="refreshSheets(); refreshSheetData()"
+                                >Refresh</v-btn>
                             </v-layout>
                         </v-flex>
-                        <v-progress-linear
-                            :active="isSheetsLoading"
-                            :height="4"
-                            :indeterminate="true"
-                            slot="extension"
-                            color="blue"
-                        ></v-progress-linear>
                     </v-toolbar>
                 </v-card>
                 <v-data-table
                     :headers="sheetHeaders"
                     :items="sheets"
                     :search="fileSearch"
+                    :loading="isSheetsLoading"
+                    no-data-text="No files found"
                     class="elevation-1"
                 >
                     <template v-slot:items="props">
@@ -60,7 +60,7 @@
                             <strong>Delete</strong>
                             &nbsp;{{ toDelete }}?
                         </v-card-title>
-                        <v-card-text>This file will no longer be accesible through the web app unless reuploaded.</v-card-text>
+                        <v-card-text>This file will no longer be accesible through the web app unless imported.</v-card-text>
                         <v-divider></v-divider>
                         <v-card-actions>
                             <v-spacer></v-spacer>
@@ -70,9 +70,9 @@
                     </v-card>
                 </v-dialog>
             </v-card>
-            <v-card flat class="mx-auto mt-5" v-if="showData">
+            <v-card flat class="mx-auto mt-5" v-show="showData">
                 <v-card class="mx-auto mt-0">
-                    <v-toolbar flat extended extension-height="4" color="white">
+                    <v-toolbar flat color="white">
                         <v-flex xs4>
                             <v-toolbar-title>{{ selectedSheet }}</v-toolbar-title>
                         </v-flex>
@@ -87,22 +87,23 @@
                         </v-flex>
                         <v-flex xs4>
                             <v-layout justify-end>
+                                <v-btn
+                                    color="green"
+                                    :dark="!isDataLoading && sheetData.length !== 0"
+                                    class="mb-2"
+                                    :disabled="isDataLoading || sheetData.length === 0"
+                                    @click="exportData"
+                                >Export</v-btn>
                                 <v-btn color="red" dark class="mb-2" @click="showData = false">Close</v-btn>
                             </v-layout>
                         </v-flex>
-                        <v-progress-linear
-                            :active="isDataLoading"
-                            :height="4"
-                            :indeterminate="true"
-                            slot="extension"
-                            color="blue"
-                        ></v-progress-linear>
                     </v-toolbar>
                 </v-card>
                 <v-data-table
                     :headers="dataHeaders"
                     :items="sheetData"
                     :search="dataSearch"
+                    no-data-text="No invalid scans found"
                     :rows-per-page-items="[10, 15, 30, { text: '$vuetify.dataIterator.rowsPerPageAll', value: -1 }]"
                     class="elevation-1"
                 >
@@ -150,7 +151,7 @@ export default {
                     text: "Device Name",
                     align: "left",
                     sortable: false,
-                    value: "name"
+                    value: "device name"
                 },
                 {
                     text: "Barcode",
@@ -171,7 +172,7 @@ export default {
                     value: "location"
                 },
                 {
-                    text: "Date/Time",
+                    text: "Time / Date",
                     align: "left",
                     sortable: false,
                     value: "date"
@@ -216,8 +217,13 @@ export default {
             this.selectedSheet = name;
             this.showData = true;
             this.sheetData = [];
-            this.sheetData = await SheetService.getSheetData(name);
-            this.isDataLoading = false;
+
+            try {
+                this.sheetData = await SheetService.getSheetData(name);
+                this.isDataLoading = false;
+            } catch (err) {
+                this.error = err.message;
+            }
         },
         async refreshSheets() {
             this.isSheetsLoading = true;
@@ -230,6 +236,61 @@ export default {
             } catch (err) {
                 this.error = err.message;
             }
+        },
+        async refreshSheetData() {
+            if (!this.selectedSheet) return;
+
+            this.isDataLoading = true;
+            this.error = "";
+            this.sheetData = [];
+
+            try {
+                this.sheetData = await SheetService.getSheetData(
+                    this.selectedSheet
+                );
+                this.isDataLoading = false;
+            } catch (err) {
+                this.error = err.message;
+            }
+        },
+        async exportData() {
+            if (this.sheetData.length === 0) return;
+
+            const ele = document.createElement("a");
+            const headers = Object.keys(this.sheetData[0]);
+            let csv = this.sheetData.map(row =>
+                headers
+                    .map(fieldName =>
+                        JSON.stringify(row[fieldName], (key, value) =>
+                            null ? "" : value
+                        )
+                    )
+                    .join(",")
+            );
+
+            csv.unshift(
+                headers
+                    .map(fieldName =>
+                        fieldName
+                            .split(" ")
+                            .map(
+                                s => s.charAt(0).toUpperCase() + s.substring(1)
+                            )
+                            .join(" ")
+                    )
+                    .join(",")
+            );
+            csv = csv.join("\r\n");
+
+            ele.style.display = "none";
+            ele.setAttribute("href", `data:text/csv;charset=utf-8,${csv}`);
+            ele.setAttribute(
+                "download",
+                `${this.selectedSheet} - Invalid Scans.csv`
+            );
+            document.body.appendChild(ele);
+
+            ele.click();
         }
     }
 };

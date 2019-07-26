@@ -20,7 +20,7 @@ class SheetService {
     static getSheetData(name) {
         return new Promise(async (resolve, reject) => {
             try {
-                const res = await axios.get(`${url}${name}/data`, { timeout: 30000 });
+                const res = await axios.get(`${url}${name}/data`, { timeout: 60000 });
 
                 resolve(res.data);
             } catch (err) {

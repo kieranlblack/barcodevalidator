@@ -54,7 +54,7 @@ router.delete('/:fullName', rateLimiter, async (req, res) => {
 
 // GET /api/sheets/:fullName/data
 router.get('/:fullName/data', rateLimiter, async (req, res) => {
-    req.setTimeout(30000);
+    req.setTimeout(60000);
 
     const path = `./attachments/${req.params.fullName}`;
 

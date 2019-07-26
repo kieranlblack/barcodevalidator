@@ -32,7 +32,7 @@ module.exports.checkSheet = async function (sheetPath) {
                 result = await pool.request()
                     .input('soNumber', sql.NVarChar(6), row[barcodeIndex].split('-')[0])
                     .input('woNumber', sql.Int, row[barcodeIndex].split('-')[1])
-                    .query('SELECT COUNT(1) FROM pressrec WHERE SO_NUM = @soNumber AND WO_NUM = @woNumber');
+                    .query('SELECT COUNT(1) FROM workord WHERE SO_NUM = @soNumber AND WO_NUM = @woNumber');
             }
 
             if (!result || Object.values(result.recordset[0])[0] === 0) {
