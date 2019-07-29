@@ -1,7 +1,7 @@
 <template>
     <v-content>
         <v-container fluid>
-            <v-alert color="error" class="text-xs-center mt-0 mb-3" v-show="error">{{ error }}</v-alert>
+            <!-- <v-alert color="error" class="text-xs-center mt-0 mb-3" v-show="error">{{ error }}</v-alert> -->
             <v-card flat class="mx-auto mt-0">
                 <v-card class="mx-auto mt-0">
                     <v-toolbar flat color="white">
@@ -103,6 +103,7 @@
                     :headers="dataHeaders"
                     :items="sheetData"
                     :search="dataSearch"
+                    :loading="isDataLoading"
                     no-data-text="No invalid scans found"
                     :rows-per-page-items="[10, 15, 30, { text: '$vuetify.dataIterator.rowsPerPageAll', value: -1 }]"
                     class="elevation-1"

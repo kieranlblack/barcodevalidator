@@ -41,7 +41,6 @@ module.exports.checkSheet = async function (sheetPath) {
             }
         }));
     } catch (err) {
-        console.log(new Error(err));
         return;
     }
 
@@ -52,5 +51,3 @@ module.exports.checkSheet = async function (sheetPath) {
         return acc;
     }, {}));
 };
-
-sql.on('error', err => console.log(new Error(err)));

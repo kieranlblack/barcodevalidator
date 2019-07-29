@@ -1,3 +1,4 @@
+const compression = require('compression');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -6,14 +7,13 @@ const express = require('express');
 
 const createError = require('http-errors');
 
-const mailListener = require('./util/mailer');
-
 const app = express();
 
 // #region third-party middleware
 
 app.use(helmet());
 app.use(morgan('common'));
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 
@@ -39,12 +39,3 @@ app.use((err, req, res, next) => {
 // #endregion error-handling middleware
 
 app.listen(3000);
-
-// the mail handler
-mailListener.start();
-
-mailListener.on('attachment', (attachment) => {
-    console.log(attachment.path);
-});
-
-mailListener.on('error', err => console.log(new Error(err)));

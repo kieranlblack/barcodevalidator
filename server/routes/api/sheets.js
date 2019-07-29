@@ -1,3 +1,5 @@
+// eslint-disable-next-line
+const dotenv = require('dotenv').config();
 const express = require('express');
 
 const fs = require('fs');
@@ -7,13 +9,14 @@ const { getRateLimiter } = require('../../middleware/rateLimiter');
 
 const router = express.Router();
 
+const path = process.env.ATTACH_PATH ? process.env.ATTACH_PATH : './attachments/';
+
 const rateLimiter = getRateLimiter(60 * 1000, 60);
 
 // GET /api/sheets
 router.get('/', rateLimiter, async (req, res) => {
-    fs.readdir('./attachments', (err, items) => {
+    fs.readdir(path, (err, items) => {
         if (err) {
-            console.log(new Error(err));
             res.status(400).end();
         } else {
             res.json(items.map(item => ({
@@ -26,11 +29,11 @@ router.get('/', rateLimiter, async (req, res) => {
 
 // GET /api/sheets/:fullName
 router.get('/:fullName', rateLimiter, async (req, res) => {
-    fs.access(`./attachments/${req.params.fullName}`, fs.F_OK, (err) => {
+    fs.access(`${path}${req.params.fullName}`, fs.F_OK, (err) => {
         if (err) res.status(404).end();
     });
 
-    res.sendFile(req.params.fullName, { root: `${__dirname}\\..\\..\\attachments` }, (err) => {
+    res.sendFile(req.params.fullName, { root: process.env.ATTACH_PATH ? process.env.ATTACH_PATH : `${__dirname}\\..\\..\\attachments` }, (err) => {
         if (err) res.status(400).end();
         res.status(200).end();
     });
@@ -38,15 +41,12 @@ router.get('/:fullName', rateLimiter, async (req, res) => {
 
 // DELETE /api/sheets/:fullName
 router.delete('/:fullName', rateLimiter, async (req, res) => {
-    const path = `./attachments/${req.params.fullName}`;
-
-    fs.access(path, fs.F_OK, (err) => {
+    fs.access(`${path}${req.params.fullName}`, fs.F_OK, (err) => {
         if (err) res.status(404).end();
     });
 
-    fs.unlink(path, (err) => {
+    fs.unlink(`${path}${req.params.fullName}`, (err) => {
         if (err) {
-            console.log(new Error(err));
             res.status(400).end();
         } else res.status(200).end();
     });
@@ -56,13 +56,11 @@ router.delete('/:fullName', rateLimiter, async (req, res) => {
 router.get('/:fullName/data', rateLimiter, async (req, res) => {
     req.setTimeout(60000);
 
-    const path = `./attachments/${req.params.fullName}`;
-
-    fs.access(path, fs.F_OK, (err) => {
+    fs.access(`${path}${req.params.fullName}`, fs.F_OK, (err) => {
         if (err) res.status(404).end();
     });
 
-    const invalidRows = await checkSheet(path);
+    const invalidRows = await checkSheet(`${path}${req.params.fullName}`);
 
     if (invalidRows) {
         res.json(invalidRows);
