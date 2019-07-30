@@ -1,12 +1,12 @@
 {
-  "name": "barcodevalidator",
-  "version": "1.0.0",
-  "description": "",
+  "name": "scanreviewer",
+  "version": "2.0.0",
+  "description": "The backend for the scan reviewer software.",
   "main": "app.js",
   "scripts": {
-    "server": "pm2 start app.js --watch --name server -i all"
+    "start": "pm2 start app.js --watch --name server -i all"
   },
-  "author": "",
+  "author": "Kieran Black",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^5.16.0",
@@ -15,7 +15,6 @@
     "eslint-plugin-vue": "^5.2.3"
   },
   "dependencies": {
-    "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^8.0.0",
     "express": "^4.17.1",
