@@ -5,7 +5,7 @@ const xlsx = require('node-xlsx');
 
 const sqlConfig = {
     driver: 'msnodesqlv8',
-    connectionString: `Driver={SQL Server Native Client 11.0};Server={${process.env.SQL_SERVER}};Database={${process.env.SQL_DB}};Trusted_Connection={yes};`,
+    connectionString: `Driver={SQL Server};Server={${process.env.SQL_SERVER}};Database={${process.env.SQL_DB}};Trusted_Connection={yes};`,
 };
 
 module.exports.checkSheet = async function (sheetPath) {
