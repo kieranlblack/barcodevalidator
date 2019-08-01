@@ -19,10 +19,14 @@ router.get('/', rateLimiter, async (req, res) => {
         if (err) {
             res.status(400).end();
         } else {
-            res.json(items.map(item => ({
-                name: item.split('.')[0],
-                fullName: item,
-            })));
+            res.json(items.map((item) => {
+                if (item.substr(0, 2) === '~$') return;
+
+                return {
+                    name: item.split('.')[0],
+                    fullName: item,
+                };
+        }));
         }
     });
 });

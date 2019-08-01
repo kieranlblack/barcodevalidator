@@ -24,6 +24,8 @@ module.exports.checkSheet = async function (sheetPath) {
         await Promise.all(workingSheet[0].data.slice(1).map(async (row, index) => {
             let result = null;
 
+            if (row[barcodeIndex] === null || row[barcodeIndex] === undefined) return;
+
             if (/^[0-9]+$/.test(row[barcodeIndex])) { // if the id number is just a number of any length
                 result = await pool.request()
                     .input('serialNumber', sql.Int, row[barcodeIndex])
