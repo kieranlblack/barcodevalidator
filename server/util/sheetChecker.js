@@ -16,15 +16,16 @@ module.exports.checkSheet = async function (sheetPath) {
     const titles = [...workingSheet[0].data[0].filter(i => i !== ''), 'rowNum'];
     const barcodeIndex = titles.indexOf('Barcode');
 
+    if (barcodeIndex < 0) return;
+
     sql.close();
 
     try {
         const pool = await sql.connect(sqlConfig);
 
-        await Promise.all(workingSheet[0].data.slice(1).map(async (row, index) => {
+        // eslint-disable-next-line
+        await Promise.all(workingSheet[0].data.slice(1).filter(i => i[barcodeIndex] !== undefined).map(async (row, index) => {
             let result = null;
-
-            if (row[barcodeIndex] === null || row[barcodeIndex] === undefined) return;
 
             if (/^[0-9]+$/.test(row[barcodeIndex])) { // if the id number is just a number of any length
                 result = await pool.request()
