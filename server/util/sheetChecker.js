@@ -1,11 +1,16 @@
 // eslint-disable-next-line
 const dotenv = require('dotenv').config();
-const sql = require('mssql/msnodesqlv8');
+const sql = require('mssql'); // /msnodesqlv8 if using windows authentication
 const xlsx = require('node-xlsx');
 
 const sqlConfig = {
-    driver: 'msnodesqlv8',
-    connectionString: `Driver={SQL Server};Server={${process.env.SQL_SERVER}};Database={${process.env.SQL_DB}};Trusted_Connection={yes};`,
+    // driver: 'msnodesqlv8',
+    // eslint-disable-next-line
+    // connectionString: `Driver={SQL Server};Server={${process.env.SQL_SERVER}};Database={${process.env.SQL_DB}};Trusted_Connection={yes};`,
+    user: process.env.SQL_USER,
+    password: process.env.SQL_PASSWORD,
+    server: process.env.SQL_SERVER,
+    database: process.env.SQL_DB,
 };
 
 module.exports.checkSheet = async function (sheetPath) {
@@ -44,6 +49,7 @@ module.exports.checkSheet = async function (sheetPath) {
             }
         }));
     } catch (err) {
+        console.log(new Error(err));
         return;
     }
 
